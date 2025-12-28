@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affordable Food Radar</title>
+    <meta name="description" content="Find budget-friendly food near you">
+    <meta name="theme-color" content="#10b981">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="food-radar.css">
+    
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=geometry"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="app-title">Affordable Food Radar</h1>
+            <p class="app-tagline">Find budget-friendly food near you</p>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search food / vendor / area" class="search-input">
+                <button id="voice-btn" class="voice-btn" title="Voice Search">🎤</button>
+            </div>
+            
+            <!-- Quick Filters -->
+            <div class="quick-filters">
+                <button class="filter-btn" data-filter="budget">Budget Meals</button>
+                <button class="filter-btn" data-filter="student">Student Discounts</button>
+                <button class="filter-btn" data-filter="late-night">Late-night Open</button>
+                <button class="filter-btn" data-filter="festival">Festival Specials</button>
+            </div>
+        </section>
+
+        <!-- Advanced Filters -->
+        <section class="advanced-filters" id="advanced-filters">
+            <div class="filter-group">
+                <label class="filter-label">Price Range</label>
+                <div class="price-slider-container">
+                    <input type="range" id="price-min" min="50" max="200" value="50" class="price-slider">
+                    <input type="range" id="price-max" min="50" max="200" value="200" class="price-slider">
+                    <div class="price-display">
+                        <span id="price-min-display">₹50</span> - <span id="price-max-display">₹200</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Open Hours</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="open-now" checked> Open Now</label>
+                    <label><input type="checkbox" id="late-night"> Late Night</label>
+                    <label><input type="checkbox" id="festival-hours"> Festival Hours</label>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Discounts</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="student-discount"> Student Discount</label>
+                    <label><input type="checkbox" id="hidden-deals"> Hidden Deals</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button id="map-view-btn" class="view-btn active">Map View</button>
+            <button id="list-view-btn" class="view-btn">List View</button>
+            <button id="filter-toggle-btn" class="filter-toggle-btn">Filters</button>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="map-container" class="map-container">
+                <div id="map" class="map"></div>
+                <div class="location-btn-container">
+                    <button id="location-btn" class="location-btn" title="My Location">📍</button>
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div id="list-container" class="list-container hidden">
+                <div id="vendor-list" class="vendor-list">
+                    <!-- Vendor cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading hidden">
+                <div class="loading-spinner"></div>
+                <p>Finding delicious food near you...</p>
+            </div>
+
+            <!-- No Results -->
+            <div id="no-results" class="no-results hidden">
+                <div class="no-results-icon">🍽️</div>
+                <h3>No vendors found</h3>
+                <p>Try adjusting your filters or search area</p>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-tab="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-btn" data-tab="deals">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Deals</span>
+            </button>
+            <button class="nav-btn" data-tab="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+
+        <!-- Deals Tab Content -->
+        <div id="deals-tab" class="tab-content hidden">
+            <div class="tab-header">
+                <h2>Current Deals</h2>
+                <button class="close-tab-btn">×</button>
+            </div>
+            <div id="deals-list" class="deals-list">
+                <!-- Deals will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Profile Tab Content -->
+        <div id="profile-tab" class="tab-content hidden">
+            <div class="tab-header">
+                <h2>Profile</h2>
+                <button class="close-tab-btn">×</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-section">
+                    <h3>Favorite Vendors</h3>
+                    <div id="favorites-list" class="favorites-list">
+                        <!-- Favorites will be inserted here -->
+                    </div>
+                </div>
+                <div class="profile-section">
+                    <h3>Recent Searches</h3>
+                    <div id="search-history" class="search-history">
+                        <!-- Search history will be inserted here -->
+                    </div>
+                </div>
+                <div class="profile-section">
+                    <h3>Notification Settings</h3>
+                    <div class="settings-group">
+                        <label><input type="checkbox" id="location-notifications"> Location-based deals</label>
+                        <label><input type="checkbox" id="festival-notifications"> Festival reminders</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Detail Modal -->
+        <div id="vendor-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-vendor-name"></h3>
+                    <button class="close-modal-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-vendor-details"></div>
+                    <div class="modal-actions">
+                        <button id="modal-navigate-btn" class="action-btn navigate-btn">Navigate</button>
+                        <button id="modal-save-btn" class="action-btn save-btn">Save</button>
+                        <button id="modal-share-btn" class="action-btn share-btn">Share</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="food-radar.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
